@@ -19,7 +19,7 @@ public class MainController {
 
   @GetMapping("/")
   public String index(Model model) {
-    model.addAttribute("customers", customerService.readAll());
+    model.addAttribute("customers", customerService.work());
     return "index";
   }
 
