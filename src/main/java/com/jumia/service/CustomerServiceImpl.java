@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,16 +42,7 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   @Override
-  public Optional<Customer> read(Long id) {
-    return customerRepository.findById(id);
-  }
-
-  @Override
-  public Iterable<Customer> readAll() {
-    return customerRepository.findAll();
-  }
-
-  public List<CustomerDTO> work() {
+  public List<CustomerDTO> getCustomers() {
     Iterable<Customer> customers = customerRepository.findAll();
     List<CustomerDTO> customersDTO = new ArrayList<>();
     for (Customer customer : customers) {

@@ -1,12 +1,8 @@
 package com.jumia.service;
 
-import com.jumia.entity.Customer;
-import java.util.Optional;
+import com.jumia.dto.CustomerDTO;
 
 public interface CustomerService {
 
-  Optional<Customer> read(Long id);
-
-  Iterable<Customer> readAll();
-
+  Iterable<CustomerDTO> getCustomers();
 }

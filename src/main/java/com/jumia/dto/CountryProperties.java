@@ -1,6 +1,9 @@
 package com.jumia.dto;
 
-public class CountryProperties {
+import java.io.Serializable;
+import java.util.Objects;
+
+public class CountryProperties implements Serializable {
 
   private String countryCode;
   private String countryRegex;
@@ -24,5 +27,23 @@ public class CountryProperties {
 
   public void setCountryRegex(String countryRegex) {
     this.countryRegex = countryRegex;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CountryProperties that = (CountryProperties) o;
+    return Objects.equals(countryCode, that.countryCode) &&
+        Objects.equals(countryRegex, that.countryRegex);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(countryCode, countryRegex);
   }
 }

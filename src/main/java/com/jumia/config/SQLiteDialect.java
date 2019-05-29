@@ -1,8 +1,6 @@
 package com.jumia.config;
 
-import java.sql.SQLException;
 import java.sql.Types;
-import org.hibernate.ScrollMode;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.AbstractAnsiTrimEmulationFunction;
 import org.hibernate.dialect.function.NoArgSQLFunction;
@@ -10,57 +8,15 @@ import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
-import org.hibernate.dialect.pagination.AbstractLimitHandler;
-import org.hibernate.dialect.pagination.LimitHandler;
-import org.hibernate.dialect.pagination.LimitHelper;
-import org.hibernate.dialect.unique.DefaultUniqueDelegate;
-import org.hibernate.dialect.unique.UniqueDelegate;
-import org.hibernate.engine.spi.RowSelection;
-import org.hibernate.exception.spi.TemplatedViolatedConstraintNameExtracter;
-import org.hibernate.exception.spi.ViolatedConstraintNameExtracter;
-import org.hibernate.internal.util.JdbcExceptionHelper;
-import org.hibernate.mapping.Column;
 import org.hibernate.type.StandardBasicTypes;
 
 public class SQLiteDialect extends Dialect {
-
-  // limit/offset support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  private static final AbstractLimitHandler LIMIT_HANDLER = new AbstractLimitHandler() {
-    @Override
-    public String processSql(String sql, RowSelection selection) {
-      final boolean hasOffset = LimitHelper.hasFirstRow(selection);
-      return sql + (hasOffset ? " limit ? offset ?" : " limit ?");
-    }
-
-    @Override
-    public boolean supportsLimit() {
-      return true;
-    }
-
-    @Override
-    public boolean bindLimitParametersInReverseOrder() {
-      return true;
-    }
-  };
-
-  // SQLException support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  private static final int SQLITE_CONSTRAINT = 19;
-  private static final ViolatedConstraintNameExtracter EXTRACTER = new TemplatedViolatedConstraintNameExtracter() {
-    @Override
-    protected String doExtractConstraintName(SQLException sqle) {
-      final int errorCode = JdbcExceptionHelper.extractErrorCode(sqle) & 0xFF;
-      if (errorCode == SQLITE_CONSTRAINT) {
-        return extractUsingTemplate("constraint ", " failed", sqle.getMessage());
-      }
-      return null;
-    }
-  };
-  private final UniqueDelegate uniqueDelegate;
 
   public SQLiteDialect() {
     registerColumnType(Types.BIT, "boolean");
     registerColumnType(Types.DECIMAL, "decimal");
     registerColumnType(Types.CHAR, "char");
+    registerColumnType(Types.VARCHAR, "varchar");
     registerColumnType(Types.LONGVARCHAR, "longvarchar");
     registerColumnType(Types.TIMESTAMP, "datetime");
     registerColumnType(Types.BINARY, "blob");
@@ -109,159 +65,5 @@ public class SQLiteDialect extends Dialect {
         return new SQLFunctionTemplate(StandardBasicTypes.STRING, "rtrim(?1, ?2)");
       }
     });
-    uniqueDelegate = new SQLiteUniqueDelegate(this);
-  }
-
-  @Override
-  public LimitHandler getLimitHandler() {
-    return LIMIT_HANDLER;
-  }
-
-  // lock acquisition support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  @Override
-  public boolean supportsLockTimeouts() {
-    // may be http://sqlite.org/c3ref/db_mutex.html ?
-    return false;
-  }
-
-  @Override
-  public String getForUpdateString() {
-    return "";
-  }
-
-  @Override
-  public boolean supportsOuterJoinForUpdate() {
-    return false;
-  }
-
-  @Override
-  public boolean supportsCurrentTimestampSelection() {
-    return true;
-  }
-
-  @Override
-  public boolean isCurrentTimestampSelectStringCallable() {
-    return false;
-  }
-
-  @Override
-  public String getCurrentTimestampSelectString() {
-    return "select current_timestamp";
-  }
-
-  @Override
-  public ViolatedConstraintNameExtracter getViolatedConstraintNameExtracter() {
-    return EXTRACTER;
-  }
-
-  // union subclass support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  @Override
-  public boolean supportsUnionAll() {
-    return true;
-  }
-
-  // DDL support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  @Override
-  public boolean canCreateSchema() {
-    return false;
-  }
-
-  @Override
-  public boolean hasAlterTable() {
-    // As specified in NHibernate dialect
-    return false;
-  }
-
-  @Override
-  public boolean dropConstraints() {
-    return false;
-  }
-
-  @Override
-  public boolean qualifyIndexName() {
-    return false;
-  }
-
-  @Override
-  public String getAddColumnString() {
-    return "add column";
-  }
-
-  @Override
-  public String getDropForeignKeyString() {
-    throw new UnsupportedOperationException(
-        "No drop foreign key syntax supported by SQLiteDialect");
-  }
-
-  @Override
-  public String getAddForeignKeyConstraintString(String constraintName,
-      String[] foreignKey, String referencedTable, String[] primaryKey,
-      boolean referencesPrimaryKey) {
-    throw new UnsupportedOperationException("No add foreign key syntax supported by SQLiteDialect");
-  }
-
-  @Override
-  public String getAddPrimaryKeyConstraintString(String constraintName) {
-    throw new UnsupportedOperationException("No add primary key syntax supported by SQLiteDialect");
-  }
-
-  @Override
-  public boolean supportsCommentOn() {
-    return true;
-  }
-
-  @Override
-  public boolean supportsIfExistsBeforeTableName() {
-    return true;
-  }
-
-  @Override
-  public boolean doesReadCommittedCauseWritersToBlockReaders() {
-    return true;
-  }
-
-  @Override
-  public boolean doesRepeatableReadCauseReadersToBlockWriters() {
-    return true;
-  }
-
-  @Override
-  public boolean supportsTupleDistinctCounts() {
-    return false;
-  }
-
-  @Override
-  public int getInExpressionCountLimit() {
-    // Compile/runtime time option: http://sqlite.org/limits.html#max_variable_number
-    return 1000;
-  }
-
-  @Override
-  public UniqueDelegate getUniqueDelegate() {
-    return uniqueDelegate;
-  }
-
-  @Override
-  public String getSelectGUIDString() {
-    return "select hex(randomblob(16))";
-  }
-
-  @Override
-  public ScrollMode defaultScrollMode() {
-    return ScrollMode.FORWARD_ONLY;
-  }
-
-  private static class SQLiteUniqueDelegate extends DefaultUniqueDelegate {
-
-    private SQLiteUniqueDelegate(Dialect dialect) {
-      super(dialect);
-    }
-
-    @Override
-    public String getColumnDefinitionUniquenessFragment(Column column) {
-      return " unique";
-    }
   }
 }

@@ -78,15 +78,4 @@ public class CustomerDTO implements Serializable {
   public int hashCode() {
     return Objects.hash(id, name, phone, country, valid);
   }
-
-  @Override
-  public String toString() {
-    return "CustomerDTO{" +
-        "id=" + id +
-        ", name='" + name + '\'' +
-        ", phone='" + phone + '\'' +
-        ", country='" + country + '\'' +
-        ", valid=" + valid +
-        '}';
-  }
 }
