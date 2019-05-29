@@ -15,6 +15,7 @@ public class CustomerDTO implements Serializable {
     this.id = id;
     this.name = name;
     this.phone = phone;
+    this.country = "";
     this.valid = false;
   }
 

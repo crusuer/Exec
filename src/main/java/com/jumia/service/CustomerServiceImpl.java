@@ -42,10 +42,14 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   @Override
+  public Iterable<Customer> findAll() {
+    return customerRepository.findAll();
+  }
+
+  @Override
   public List<CustomerDTO> getCustomers() {
-    Iterable<Customer> customers = customerRepository.findAll();
     List<CustomerDTO> customersDTO = new ArrayList<>();
-    for (Customer customer : customers) {
+    for (Customer customer : findAll()) {
       CustomerDTO customerDTO = new CustomerDTO(customer.getId(), customer.getName(),
           customer.getPhone());
       for (Map.Entry<String, CountryProperties> entry : countries.entrySet()) {
