@@ -1,46 +1,21 @@
 package com.jumia.dto;
 
+import com.jumia.entity.Customer;
+import com.jumia.util.CountryUtilities;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class CustomerDTO implements Serializable {
+public class CustomerDTO extends Customer implements Serializable {
 
-  private Long id;
-  private String name;
-  private String phone;
   private String country;
   private boolean valid;
 
-  public CustomerDTO(Long id, String name, String phone) {
-    this.id = id;
-    this.name = name;
-    this.phone = phone;
-    this.country = "";
-    this.valid = false;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getPhone() {
-    return phone;
-  }
-
-  public void setPhone(String phone) {
-    this.phone = phone;
+  public CustomerDTO(Customer customer) {
+    super.setId(customer.getId());
+    super.setName(customer.getName());
+    super.setPhone(customer.getPhone());
+    this.country = CountryUtilities.getPhoneCountry(getPhone());
+    this.valid = CountryUtilities.validatePhone(getPhone(), getCountry());
   }
 
   public String getCountry() {
@@ -68,15 +43,15 @@ public class CustomerDTO implements Serializable {
       return false;
     }
     CustomerDTO that = (CustomerDTO) o;
-    return valid == that.valid &&
-        Objects.equals(id, that.id) &&
-        Objects.equals(name, that.name) &&
-        Objects.equals(phone, that.phone) &&
-        Objects.equals(country, that.country);
+    return isValid() == that.isValid() &&
+        Objects.equals(getId(), that.getId()) &&
+        Objects.equals(getName(), that.getName()) &&
+        Objects.equals(getPhone(), that.getPhone()) &&
+        Objects.equals(getCountry(), that.getCountry());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, name, phone, country, valid);
+    return Objects.hash(getId(), getName(), getPhone(), getCountry(), isValid());
   }
 }
